@@ -1,0 +1,42 @@
+{
+  "name": "use-hooked-component",
+  "version": "0.1.0",
+  "description": "Some description",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "babel src --out-dir dist",
+    "prepare": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apearce/use-hooked-component.git"
+  },
+  "keywords": [
+    "React",
+    "Components",
+    "Hooks"
+  ],
+  "author": "Alan Pearce <alan.pearce@alttag.org>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/apearce/use-hooked-component/issues"
+  },
+  "homepage": "https://github.com/apearce/use-hooked-component#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.12.8",
+    "@babel/core": "^7.12.9",
+    "@babel/preset-env": "^7.12.7",
+    "@babel/preset-react": "^7.14.5",
+    "@testing-library/react-hooks": "^3.4.2",
+    "babel-preset-minify": "^0.5.1",
+    "jest": "^26.6.3",
+    "react-test-renderer": "^17.0.1"
+  },
+  "peerDependencies": {
+    "react": "^16.9.0"
+  }
+}
