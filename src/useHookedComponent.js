@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
-function useHookedComponent(Component, defaultState, setters) {
+function useHookedComponent(Component, initial, setters) {
     const [returnState] = useState(() => {
-        let state = defaultState;
+        let state = initial;
         let setState = () => {};
         const returnSetters = !!setters ? 
             setters.map(setter => (...args) => {
@@ -10,7 +10,7 @@ function useHookedComponent(Component, defaultState, setters) {
             }) : [(v) => setState(v)];
 
         return [function HookedComponent(props) {
-            [state, setState] = useState(defaultState);
+            [state, setState] = useState(initial);
 
             return (<Component {...props} {...state} />);
         }, ...returnSetters, () => state];
