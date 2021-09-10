@@ -1,6 +1,6 @@
 {
   "name": "use-hooked-component",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Some description",
   "main": "./dist/index.js",
   "scripts": {
