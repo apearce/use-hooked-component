@@ -5,13 +5,13 @@ Update your components props directly using callbacks from a hook.
 `npm i use-hooked-component`
 
 ## A Hooked Component?
-Normally to update a component's props you update some state for the props on the parent component which causes a rerender of the parent and **all** of it's children. `useHookedComponent` allows you to update the props directly without rerendering everything. In it's simplest form you use it like so:
+Normally to update a component's props you update some state for the props on the parent component which causes a rerender of the parent and **all** of it's children. `useHookedComponent` allows you to update the props directly without rerendering everything. In its simplest form you use it like so:
 
 ```jsx
 const [HookedComponent, updateComponent, getValues] = useHookedComponent(SomeComponent);
 ```
 
-It returns a component and a function you can use to update the component directly. It also returns a function as the **last** return value that you can use to get the values set using the updater.
+It returns a component and a function you can use to update the component directly. It also returns a function as the **last** return value that you can use to get the values set using the update function.
 
 Let's say you have a `Spinner` component that you may show when loading some data or saving something. It has a single prop `visible` which you use to show or hide it. Rather than having a `showSpinner` or some such state on the parent, you can just call the `Spinner` directy. Only the `Spinner` will rerender.
 
@@ -59,7 +59,7 @@ const [HookedSpinner, updateSpinner] = useHookedComponent(Spinner, { visible: tr
 ```
 
 ## Custom Setters
-`useHookedComponent` also takes a third argument which is a list of custom setters. You can pass arguments to the setters and they will also get passed an object of all of the current values set using the hook. It should return an object of all of the props to be set on the component by the hook. Props set directly on the component should not be included unless you want to override them. The getter function, not shown, will still be returned as the last return value.
+`useHookedComponent` also takes a third argument which is a list of custom setters. You can pass arguments to the setters, and they will also get passed an object of all of the current values set using the hook. It should return an object of all of the props to be set on the component by the hook. Props set directly on the component should not be included unless you want to override them. The getter function, not shown, will still be returned as the last return value.
 
 ```jsx
 const [HookedSpinner, showSpinner] = useHookedComponent(Spinner, {}, [visible => ({ visible })]);
@@ -77,7 +77,7 @@ const [HookedSpinner, toggleSpinner] = useHookedComponent(Spinner, {}, [current 
 Now you can toggle the `Spinner` by calling `toggleSpinner()`.
 
 ## Wrapping Up
-Now you can take your hooked spinner and wrap it in it's own hook.
+Now you can take your hooked spinner and wrap it in its own hook.
 
 ```jsx
 import useHookedComponent from 'use-hooked-component';
