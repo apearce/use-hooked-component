@@ -13,7 +13,7 @@ const [HookedComponent, updateComponent, getValues] = useHookedComponent(SomeCom
 
 It returns a component and a function you can use to update the component directly. It also returns a function as the **last** return value that you can use to get the values set using the update function.
 
-Let's say you have a `Spinner` component that you may show when loading some data or saving something. It has a single prop `visible` which you use to show or hide it. Rather than having a `showSpinner` or some such state on the parent, you can just call the `Spinner` directy. Only the `Spinner` will rerender.
+Let's say you have a `Spinner` component that you show when loading some data or saving something. It has a single prop `visible` which you use to show or hide it. Rather than having a `showSpinner` or some such state on the parent, you can just call the `Spinner` directy. Only the `Spinner` will rerender.
 
 ```jsx
 import { useEffect } from 'react';
@@ -59,22 +59,34 @@ const [HookedSpinner, updateSpinner] = useHookedComponent(Spinner, { visible: tr
 ```
 
 ## Custom Setters
-`useHookedComponent` also takes a third argument which is a list of custom setters. You can pass arguments to the setters, and they will also get passed an object of all of the current values set using the hook. It should return an object of all of the props to be set on the component by the hook. Props set directly on the component should not be included unless you want to override them. The getter function, not shown, will still be returned as the last return value.
+To have more control over updates, you can also pass custom setters as the last argument. You can pass a single function, an array of functions, or an object. You can pass arguments to the setters, and they will also get passed an object of all of the current values set using the hook. Each setter should return an object with all of the props to be set on the component. Props set directly on the component should not be included unless you want to override them. The getter function, not shown, will still be returned as the last return value.
 
 ```jsx
-const [HookedSpinner, showSpinner] = useHookedComponent(Spinner, {}, [visible => ({ visible })]);
+const [HookedSpinner, showSpinner] = useHookedComponent(Spinner, {}, visible => ({ visible }));
 ```
-Now you can show the `Spinner` by calling `showSpinner(true)` and hide it by calling `showSpinner(false)`.
+The above example uses a single setter. You can show the `Spinner` by calling `showSpinner(true)` and hide it by calling `showSpinner(false)`.
 
 ```jsx
-const [HookedSpinner, showSpinner, hideSpinner] = useHookedComponent(Spinner, {}, [() => ({ visible: true }), () => ({ visible: false })]);
+// Array of setters
+const [HookedSpinner, showSpinner, hideSpinner] = useHookedComponent(Spinner, {}, [
+    () => ({ visible: true }),
+    () => ({ visible: false })
+]);
+```
+OR
+```jsx
+// Object containing the setters
+const [HookedSpinner, { showSpinner, hideSpinner }] = useHookedComponent(Spinner, {}, {
+    showSpinner: () => ({ visible: true }),
+    hideSpinner: () => ({ visible: false })
+});
 ```
 Now you can show the `Spinner` by calling `showSpinner()` and hide it by calling `hideSpinner()`.
 
 ```jsx
-const [HookedSpinner, toggleSpinner] = useHookedComponent(Spinner, {}, [current => ({ visible: !current.visible })]);
+const [HookedSpinner, toggleSpinner] = useHookedComponent(Spinner, {}, current => ({ visible: !current.visible }));
 ```
-Now you can toggle the `Spinner` by calling `toggleSpinner()`.
+The above example uses a single setter which automatically gets the current values passed to it. You can toggle the `Spinner` by calling `toggleSpinner()`.
 
 ## Wrapping Up
 Now you can take your hooked spinner and wrap it in its own hook.
@@ -84,7 +96,10 @@ import useHookedComponent from 'use-hooked-component';
 import Spinner from './my/awesome/spinner';
 
 function useSpinner(visible) {
-    return useHookedComponent(Spinner, { visible }, [() => ({ visible: true }), () => ({ visible: false })]);
+    return useHookedComponent(Spinner, { visible }, {
+        showSpinner: () => ({ visible: true }),
+        hideSpinner: () => ({ visible: false })
+    });
 }
 
 export default useSpinner;
@@ -95,7 +110,7 @@ import { useEffect } from 'react';
 import useSpinner from './useSpinner';
 
 function PageComponent(props) {
-    const [Spinner, showSpinner, hideSpinner] = useSpinner(false);
+    const [Spinner, { showSpinner, hideSpinner }] = useSpinner(false);
     ...
 
     useEffect(() => {
