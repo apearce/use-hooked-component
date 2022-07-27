@@ -44,6 +44,10 @@ describe("Test default behavior", () => {
         const { result } = renderHook(() => useHookedComponent(TestComponent, initalState));
         const [Component, , getter] = result.current;
 
+        act(() => {
+            render(<Component />, container);
+        });
+
         expect(getter()).toBe(initalState);
     });
 
@@ -179,6 +183,21 @@ describe("Test passing a single setter", () => {
         expect(container.textContent).toBe("Hello World");
     });
     
+    test("Custom setter passing function", () => {
+        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, (message) => ({ message })));
+        const [Component, setter] = result.current;
+
+        act(() => {
+            render(<Component message="Test" />, container);
+        });
+
+        act(() => {
+            setter((current) => `${current.message} World`);
+        });
+    
+        expect(container.textContent).toBe("Hello World");
+    });
+
     test("Default props", () => {
         const { result } = renderHook(() => useHookedComponent(TestComponent, {}, (...args) => {
             if (args.length === 2) {
@@ -298,6 +317,21 @@ describe("Test passing an array of setters", () => {
         expect(container.textContent).toBe("");
     });
     
+    test("Custom setter passing function", () => {
+        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, [(message) => ({ message })]));
+        const [Component, setter] = result.current;
+
+        act(() => {
+            render(<Component message="Test" />, container);
+        });
+
+        act(() => {
+            setter((current) => `${current.message} World`);
+        });
+    
+        expect(container.textContent).toBe("Hello World");
+    });
+
     test("Default props", () => {
         const { result } = renderHook(() => useHookedComponent(TestComponent, {}, [
             () => ({ message: "There" }),
@@ -413,6 +447,21 @@ describe("Test passing an object of setters", () => {
         expect(container.textContent).toBe("Hello World");
     });
     
+    test("Custom setter passing function", () => {
+        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, { setter: (message) => ({ message }) }));
+        const [Component, { setter }] = result.current;
+
+        act(() => {
+            render(<Component message="Test" />, container);
+        });
+
+        act(() => {
+            setter((current) => `${current.message} World`);
+        });
+    
+        expect(container.textContent).toBe("Hello World");
+    });
+
     test("Default props", () => {
         const { result } = renderHook(() => useHookedComponent(TestComponent, {}, {
             reset: () => ({}),
