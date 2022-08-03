@@ -9,40 +9,51 @@ function isObject(o) {
     return ({}).toString.call(o) === "[object Object]"
 }
 
-function useHookedComponent(Component, initial, setters) {
-    const [returnState] = useState(() => {
-        let state;
+function useHookedComponent(Component, methods, options = {}) {
+    const [returnValues] = useState(() => {
+        const defaultMethod = v => v;
+        let currentProps = {};
         let setState = () => {};
-        let returnSetters = [(v) => setState(v)];
+        let state;
+        let updatedMethods;
 
-        function getSetter(setter) {
+        function getCurrent() {
+            return { ...currentProps, ...state };
+        }
+
+        function updatedMethod(method) {
             return (...args) => {
                 return isFunction(args[0]) ? 
-                    setState(current => setter(args[0](current))) : 
-                    setState(current => setter(...args, current));
+                    setState(() => method(args[0](getCurrent()))) : 
+                    method !== defaultMethod ?
+                        setState(() => method(...args, getCurrent())) :
+                        setState(() => method(args[0]));
             }
         }
 
-        if (Array.isArray(setters)) {
-            returnSetters = setters.map(getSetter);
-        } else if (isObject(setters)) {
-            returnSetters = [Object.entries(setters).reduce((acc, [name, setter]) => {
-                acc[name] = getSetter(setter);
+        if (Array.isArray(methods)) {
+            updatedMethods = methods.map(updatedMethod);
+        } else if (isObject(methods)) {
+            updatedMethods = [Object.entries(methods).reduce((acc, [name, method]) => {
+                acc[name] = updatedMethod(method);
 
                 return acc;
             }, {})];
-        } else if (isFunction(setters)) {
-            returnSetters = [getSetter(setters)];
+        } else if (isFunction(methods)) {
+            updatedMethods = [updatedMethod(methods)];
+        } else {
+            updatedMethods = [updatedMethod(defaultMethod)];
         }
 
         return [function HookedComponent(props) {
-            [state, setState] = useState(initial);
+            [state, setState] = useState(options.initial);
+            currentProps = props;
 
             return (<Component {...props} {...state} />);
-        }, ...returnSetters, () => state];
+        }, ...updatedMethods, getCurrent];
     });
 
-    return returnState;
+    return returnValues;
 }
 
 export default useHookedComponent;

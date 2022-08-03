@@ -28,8 +28,9 @@ describe("Test default behavior", () => {
         expect(result.current.every(r => typeof r === "function")).toBe(true);
     });
 
-    test("Inital state", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }));
+    test("Initial state", () => {
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, undefined, { initial }));
         const [Component] = result.current;
     
         act(() => {
@@ -40,15 +41,15 @@ describe("Test default behavior", () => {
     });
 
     test("Getter", () => {
-        const initalState = { message: "Hello" };
-        const { result } = renderHook(() => useHookedComponent(TestComponent, initalState));
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, undefined, { initial }));
         const [Component, , getter] = result.current;
 
         act(() => {
             render(<Component />, container);
         });
 
-        expect(getter()).toBe(initalState);
+        expect(getter()).toStrictEqual(initial);
     });
 
     test("Default setter", () => {
@@ -67,11 +68,12 @@ describe("Test default behavior", () => {
         });
     
         expect(container.textContent).toBe("New Message");
-        expect(getter()).toBe(newState);
+        expect(getter()).toStrictEqual(newState);
     });
 
     test("Default setter passing function", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }));
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, undefined, { initial }));
         const [Component, setter] = result.current;
 
         act(() => {
@@ -113,7 +115,8 @@ describe("Test default behavior", () => {
     });
 
     test("Initial state overrrides default props", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }));
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, undefined, { initial }));
         const [Component] = result.current;
     
         act(() => {
@@ -126,14 +129,16 @@ describe("Test default behavior", () => {
 
 describe("Test passing a single setter", () => {
     test("Custom array of setters", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, () => ({ message: "World" })));
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, () => ({ message: "World" }), { initial }));
     
         expect(result.current.length).toBe(3);
         expect(result.current.every(r => typeof r === "function")).toBe(true);
     });
     
     test("Use custom setter", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, () => ({ message: "World" })));
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, () => ({ message: "World" }), { initial }));
         const [Component, setter] = result.current;
     
         act(() => {
@@ -150,7 +155,8 @@ describe("Test passing a single setter", () => {
     });
     
     test("Pass value to custom setter", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, (message) => ({ message })));
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, (message) => ({ message }), { initial }));
         const [Component, setter] = result.current;
     
         act(() => {
@@ -167,7 +173,8 @@ describe("Test passing a single setter", () => {
     });
     
     test("Use current value in custom setters", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, (current) => ({ message: `${current.message} World` })));
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, (current) => ({ message: `${current.message} World` }), { initial }));
         const [Component, setter] = result.current;
     
         act(() => {
@@ -184,7 +191,8 @@ describe("Test passing a single setter", () => {
     });
     
     test("Custom setter passing function", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, (message) => ({ message })));
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, (message) => ({ message }), { initial }));
         const [Component, setter] = result.current;
 
         act(() => {
@@ -199,7 +207,7 @@ describe("Test passing a single setter", () => {
     });
 
     test("Default props", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, {}, (...args) => {
+        const { result } = renderHook(() => useHookedComponent(TestComponent, (...args) => {
             if (args.length === 2) {
                 return {
                     message: args[0]
@@ -230,20 +238,22 @@ describe("Test passing a single setter", () => {
 
 describe("Test passing an array of setters", () => {
     test("Custom array of setters", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, [
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, [
             (prop) => ({ prop, show: true }),
             () => ({ show: false }),
-        ]));
+        ], { initial }));
     
         expect(result.current.length).toBe(4);
         expect(result.current.every(r => typeof r === "function")).toBe(true);
     });
     
     test("Use custom setters", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, [
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, [
             () => ({ message: "World" }),
             () => ({}),
-        ]));
+        ], { initial }));
         const [Component, setter1, setter2] = result.current;
     
         act(() => {
@@ -266,10 +276,11 @@ describe("Test passing an array of setters", () => {
     });
     
     test("Pass value to custom setter", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, [
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, [
             () => ({ message: "World" }),
             (message) => ({ message }),
-        ]));
+        ], { initial }));
         const [Component, setter1, setter2] = result.current;
     
         act(() => {
@@ -292,10 +303,11 @@ describe("Test passing an array of setters", () => {
     });
     
     test("Use current value in custom setters", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, [
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, [
             (current) => ({ message: `${current.message} World` }),
             () => ({}),
-        ]));
+        ], { initial }));
         const [Component, setter1, setter2] = result.current;
     
         act(() => {
@@ -318,7 +330,8 @@ describe("Test passing an array of setters", () => {
     });
     
     test("Custom setter passing function", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, [(message) => ({ message })]));
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, [(message) => ({ message })], { initial }));
         const [Component, setter] = result.current;
 
         act(() => {
@@ -333,7 +346,7 @@ describe("Test passing an array of setters", () => {
     });
 
     test("Default props", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, {}, [
+        const { result } = renderHook(() => useHookedComponent(TestComponent, [
             () => ({ message: "There" }),
             () => ({}),
         ]));
@@ -361,10 +374,11 @@ describe("Test passing an array of setters", () => {
 
 describe("Test passing an object of setters", () => {
     test("Custom object of setters", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, {
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, {
             setBye: () => ({ message: "Bye" }),
             setHi: () => ({ message: "Hi" }),
-        }));
+        }, { initial }));
         const setters = result.current[1];
 
         expect(result.current.length).toBe(3);
@@ -377,10 +391,11 @@ describe("Test passing an object of setters", () => {
     });
     
     test("Use custom setters", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, {
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, {
             setBye: () => ({ message: "Bye" }),
             setHi: () => ({ message: "Hi" }),
-        }));
+        }, { initial }));
         const [Component, { setBye, setHi }] = result.current;
     
         act(() => {
@@ -403,10 +418,11 @@ describe("Test passing an object of setters", () => {
     });
     
     test("Pass value to custom setter", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, {
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, {
             setBye: () => ({ message: "Bye" }),
             setMessage: (message) => ({ message }),
-        }));
+        }, { initial }));
         const [Component, { setBye, setMessage }] = result.current;
     
         act(() => {
@@ -429,9 +445,10 @@ describe("Test passing an object of setters", () => {
     });
     
     test("Use current value in custom setter", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, {
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, {
             setWithCurrent: (current) => ({ message: `${current.message} World` })
-        }));
+        }, { initial }));
         const [Component, { setWithCurrent }] = result.current;
     
         act(() => {
@@ -448,7 +465,8 @@ describe("Test passing an object of setters", () => {
     });
     
     test("Custom setter passing function", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, { message: "Hello" }, { setter: (message) => ({ message }) }));
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(TestComponent, { setter: (message) => ({ message }) }, { initial }));
         const [Component, { setter }] = result.current;
 
         act(() => {
@@ -463,7 +481,7 @@ describe("Test passing an object of setters", () => {
     });
 
     test("Default props", () => {
-        const { result } = renderHook(() => useHookedComponent(TestComponent, {}, {
+        const { result } = renderHook(() => useHookedComponent(TestComponent, {
             reset: () => ({}),
             setBye: () => ({ message: "Bye" })
         }));
