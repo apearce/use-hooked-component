@@ -49,7 +49,7 @@ describe("Test default behavior", () => {
             render(<Component />, container);
         });
 
-        expect(getter()).toStrictEqual(initial);
+        expect(getter().hookProps).toStrictEqual(initial);
     });
 
     test("Default setter", () => {
@@ -68,7 +68,8 @@ describe("Test default behavior", () => {
         });
     
         expect(container.textContent).toBe("New Message");
-        expect(getter()).toStrictEqual(newState);
+        expect(getter().hookProps).toStrictEqual(newState);
+        expect(getter().props.message).toBe("Test");
     });
 
     test("Default setter passing function", () => {
@@ -82,7 +83,7 @@ describe("Test default behavior", () => {
 
         act(() => {
             setter((current) => ({
-                message: `${current.message} World`
+                message: `${current.hookProps.message} World`
             }));
         });
     
@@ -174,7 +175,7 @@ describe("Test passing a single setter", () => {
     
     test("Use current value in custom setters", () => {
         const initial = { message: "Hello" };
-        const { result } = renderHook(() => useHookedComponent(TestComponent, (current) => ({ message: `${current.message} World` }), { initial }));
+        const { result } = renderHook(() => useHookedComponent(TestComponent, () => (current) => ({ message: `${current.hookProps.message} World` }), { initial }));
         const [Component, setter] = result.current;
     
         act(() => {
@@ -200,7 +201,7 @@ describe("Test passing a single setter", () => {
         });
 
         act(() => {
-            setter((current) => `${current.message} World`);
+            setter((current) => `${current.hookProps.message} World`);
         });
     
         expect(container.textContent).toBe("Hello World");
@@ -208,7 +209,7 @@ describe("Test passing a single setter", () => {
 
     test("Default props", () => {
         const { result } = renderHook(() => useHookedComponent(TestComponent, (...args) => {
-            if (args.length === 2) {
+            if (args.length) {
                 return {
                     message: args[0]
                 };
@@ -305,7 +306,7 @@ describe("Test passing an array of setters", () => {
     test("Use current value in custom setters", () => {
         const initial = { message: "Hello" };
         const { result } = renderHook(() => useHookedComponent(TestComponent, [
-            (current) => ({ message: `${current.message} World` }),
+            () => (current) => ({ message: `${current.hookProps.message} World` }),
             () => ({}),
         ], { initial }));
         const [Component, setter1, setter2] = result.current;
@@ -339,7 +340,7 @@ describe("Test passing an array of setters", () => {
         });
 
         act(() => {
-            setter((current) => `${current.message} World`);
+            setter((current) => `${current.hookProps.message} World`);
         });
     
         expect(container.textContent).toBe("Hello World");
@@ -447,7 +448,7 @@ describe("Test passing an object of setters", () => {
     test("Use current value in custom setter", () => {
         const initial = { message: "Hello" };
         const { result } = renderHook(() => useHookedComponent(TestComponent, {
-            setWithCurrent: (current) => ({ message: `${current.message} World` })
+            setWithCurrent: () => (current) => ({ message: `${current.hookProps.message} World` })
         }, { initial }));
         const [Component, { setWithCurrent }] = result.current;
     
@@ -474,7 +475,7 @@ describe("Test passing an object of setters", () => {
         });
 
         act(() => {
-            setter((current) => `${current.message} World`);
+            setter((current) => `${current.hookProps.message} World`);
         });
     
         expect(container.textContent).toBe("Hello World");

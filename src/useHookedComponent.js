@@ -1,56 +1,99 @@
 import * as React from "react";
 import { useState } from "react";
 
+function getType(o) {
+    const type = ({}).toString.call(o);
+
+    return type.slice(type.indexOf(" ") + 1, -1);
+}
+
 function isFunction(f) {
-    return ({}).toString.call(f) === "[object Function]"
+    return getType(f) === "Function";
 }
 
 function isObject(o) {
-    return ({}).toString.call(o) === "[object Object]"
+    return getType(o) === "Object";
 }
 
-function useHookedComponent(Component, methods, options = {}) {
+function isUndefined(o) {
+    return getType(o) === "Undefined";
+}
+
+function useHookedComponent(Component, setters, options = {}) {
     const [returnValues] = useState(() => {
-        const defaultMethod = v => v;
+        const {
+            initial,
+            settersProp = "__setters",
+            props: optionsProps,
+            omitSetters
+        } = options;
+        const defaultSetter = v => v;
+        let componentSetters;
         let currentProps = {};
         let setState = () => {};
         let state;
-        let updatedMethods;
+        let updatedSetters;
 
         function getCurrent() {
-            return { ...currentProps, ...state };
+            return {
+                hookProps: { ...state },
+                props: { ...currentProps }
+            };
         }
 
-        function updatedMethod(method) {
+        function updateSetter(setter) {
             return (...args) => {
-                return isFunction(args[0]) ? 
-                    setState(() => method(args[0](getCurrent()))) : 
-                    method !== defaultMethod ?
-                        setState(() => method(...args, getCurrent())) :
-                        setState(() => method(args[0]));
+                let result;
+
+                if (isFunction(args[0])) {
+                    result = setter(args[0](getCurrent()));
+                } else {
+                    result = setter !== defaultSetter ?
+                        setter(...args) :
+                        setter(args[0]);
+
+                    if (isFunction(result)) {
+                        result = result(getCurrent());
+                    }
+                }
+
+                if (isObject(result) || isUndefined(result)) {
+                    setState(result);
+                } else {
+                    throw new TypeError(`Expected Object but got ${getType(result)} instead.`);
+                }
             }
         }
 
-        if (Array.isArray(methods)) {
-            updatedMethods = methods.map(updatedMethod);
-        } else if (isObject(methods)) {
-            updatedMethods = [Object.entries(methods).reduce((acc, [name, method]) => {
-                acc[name] = updatedMethod(method);
+        if (Array.isArray(setters)) {
+            updatedSetters = setters.map(updateSetter);
+        } else if (isObject(setters)) {
+            updatedSetters = [Object.entries(setters).reduce((acc, [name, setter]) => {
+                acc[name] = updateSetter(setter);
 
                 return acc;
             }, {})];
-        } else if (isFunction(methods)) {
-            updatedMethods = [updatedMethod(methods)];
+        } else if (isFunction(setters)) {
+            updatedSetters = [updateSetter(setters)];
         } else {
-            updatedMethods = [updatedMethod(defaultMethod)];
+            updatedSetters = [updateSetter(defaultSetter)];
+        }
+
+        if (!omitSetters) {
+            componentSetters = {
+                [settersProp]: isObject(updatedSetters[0]) ?
+                    updatedSetters[0] :
+                    updatedSetters
+            };
         }
 
         return [function HookedComponent(props) {
-            [state, setState] = useState(options.initial);
-            currentProps = props;
+            [state, setState] = useState(initial);
 
-            return (<Component {...props} {...state} />);
-        }, ...updatedMethods, getCurrent];
+            currentProps = { ...optionsProps, ...props };
+
+            return (<Component {...currentProps} {...state} { ...componentSetters } />);
+        }, ...updatedSetters, getCurrent];
     });
 
     return returnValues;
