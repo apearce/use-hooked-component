@@ -22,6 +22,7 @@ function isUndefined(o) {
 function useHookedComponent(Component, setters, options = {}) {
     const [returnValues] = useState(() => {
         const {
+            displayName = "HookedComponent",
             initial,
             settersProp = "__setters",
             props: optionsProps,
@@ -87,13 +88,17 @@ function useHookedComponent(Component, setters, options = {}) {
             };
         }
 
-        return [function HookedComponent(props) {
+        const HookedComponent = (props) => {
             [state, setState] = useState(initial);
 
             currentProps = { ...optionsProps, ...props };
 
             return (<Component {...currentProps} {...state} { ...componentSetters } />);
-        }, ...updatedSetters, getCurrent];
+        };
+
+        HookedComponent.displayName = displayName;
+
+        return [HookedComponent, ...updatedSetters, getCurrent];
     });
 
     return returnValues;
