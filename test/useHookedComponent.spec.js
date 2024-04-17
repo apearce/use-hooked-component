@@ -2,7 +2,7 @@ import * as React from "react";
 import { render, unmountComponentAtNode } from "react-dom";
 import { act } from "react-dom/test-utils";
 import { renderHook } from "@testing-library/react-hooks";
-import useHookedComponent from "../src/useHookedComponent";
+import useHookedComponent from "../dist/index";
 
 let container = null;
 const TestComponent = (props) => (<span>{props.message}</span>);

@@ -1,60 +1,63 @@
 import * as React from "react";
 import { useState } from "react";
+import {
+    getType,
+    isFunction,
+    isObject,
+    isUndefined
+} from "./utils";
+import {
+    CurrentProps,
+    DefaultSetter,
+    Obj,
+    Options,
+    RetVal,
+    Setter,
+    Setters,
+    UpdatedSetter,
+    UpdatedSetterObject
+} from "./types";
 
-function getType(o) {
-    const type = ({}).toString.call(o);
-
-    return type.slice(type.indexOf(" ") + 1, -1);
-}
-
-function isFunction(f) {
-    return getType(f) === "Function";
-}
-
-function isObject(o) {
-    return getType(o) === "Object";
-}
-
-function isUndefined(o) {
-    return getType(o) === "Undefined";
-}
-
-function useHookedComponent(Component, setters, options = {}) {
+function useHookedComponent(
+    Component: React.ElementType,
+    setters?: Setters,
+    options: Options = {}
+): RetVal {
     const [returnValues] = useState(() => {
         const {
             displayName = "HookedComponent",
             initial,
-            settersProp = "__setters",
             props: optionsProps,
-            omitSetters
+            omitSetters,
+            settersProp = "__setters"
         } = options;
-        const defaultSetter = v => v;
-        let componentSetters;
-        let currentProps = {};
-        let setState = () => {};
-        let state;
-        let updatedSetters;
+        const defaultSetter: DefaultSetter = (v) => v;
+        let componentSetters: Obj;
+        let currentProps: Obj = {};
+        let setState: React.Dispatch<React.SetStateAction<Obj | undefined>> = () => {};
+        let state: Obj | undefined;
+        let updatedSetters: UpdatedSetter[] | UpdatedSetterObject[];
 
-        function getCurrent() {
+        function getCurrent(): CurrentProps {
             return {
                 hookProps: { ...state },
                 props: { ...currentProps }
             };
         }
 
-        function updateSetter(setter) {
-            return (...args) => {
+        function updateSetter(setter: Setter): UpdatedSetter {
+            return (...args: unknown[]): void => {
                 let result;
 
                 if (isFunction(args[0])) {
-                    result = setter(args[0](getCurrent()));
+                    result = setter((args[0])(getCurrent()));
                 } else {
                     result = setter !== defaultSetter ?
                         setter(...args) :
                         setter(args[0]);
 
                     if (isFunction(result)) {
-                        result = result(getCurrent());
+                        result = (result)(getCurrent());
                     }
                 }
 
@@ -73,11 +76,11 @@ function useHookedComponent(Component, setters, options = {}) {
                 acc[name] = updateSetter(setter);
 
                 return acc;
-            }, {})];
+            }, {} as UpdatedSetterObject)];
         } else if (isFunction(setters)) {
             updatedSetters = [updateSetter(setters)];
         } else {
-            updatedSetters = [updateSetter(defaultSetter)];
+            updatedSetters = [updateSetter(defaultSetter as Setter)];
         }
 
         if (!omitSetters) {
@@ -88,7 +91,7 @@ function useHookedComponent(Component, setters, options = {}) {
             };
         }
 
-        const HookedComponent = (props) => {
+        const HookedComponent = (props?: Obj) => {
             [state, setState] = useState(initial);
 
             currentProps = { ...optionsProps, ...props };
@@ -101,7 +104,7 @@ function useHookedComponent(Component, setters, options = {}) {
         return [HookedComponent, ...updatedSetters, getCurrent];
     });
 
-    return returnValues;
+    return returnValues as RetVal;
 }
 
 export default useHookedComponent;
