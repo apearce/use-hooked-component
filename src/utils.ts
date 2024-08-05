@@ -1,5 +1,15 @@
 import { Obj } from "./types";
 
+function getPromiseWithResolvers() {
+    let resolve, reject;
+    const promise = new Promise((res, rej) => {
+        resolve = res;
+        reject = rej;
+    });
+
+    return { promise, reject, resolve };
+}
+
 function getType(o: unknown): string {
     const type = ({}).toString.call(o);
 
@@ -19,6 +29,7 @@ function isUndefined(o: unknown): o is undefined {
 }
 
 export {
+    getPromiseWithResolvers,
     getType,
     isFunction,
     isObject,

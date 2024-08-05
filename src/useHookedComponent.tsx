@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useState } from "react";
 import {
+    getPromiseWithResolvers,
     getType,
     isFunction,
     isObject,
@@ -25,6 +26,7 @@ function useHookedComponent(
 ): RetVal {
     const [returnValues] = useState(() => {
         const {
+            asyncProp = "__async",
             displayName = "HookedComponent",
             initial,
             props: optionsProps,
@@ -46,7 +48,7 @@ function useHookedComponent(
         }
 
         function updateSetter(setter: Setter): UpdatedSetter {
-            return (...args: unknown[]): void => {
+            return (...args: unknown[]): void | Promise<unknown> => {
                 let result;
 
                 if (isFunction(args[0])) {
@@ -61,8 +63,21 @@ function useHookedComponent(
                     }
                 }
 
-                if (isObject(result) || isUndefined(result)) {
+                if (isUndefined(result)) {
                     setState(result);
+                } else if (isObject(result)) {
+                    const { [asyncProp]: isAsync, ...rest } = result;
+
+                    if (isAsync) {
+                        const { promise, reject, resolve } = Object.hasOwn(Promise, "withResolvers") ?
+                            Promise.withResolvers() : getPromiseWithResolvers();
+
+                        setState({ ...rest, [asyncProp]: { reject, resolve } });
+
+                        return promise;
+                    }
+
+                    setState(rest);
                 } else {
                     throw new TypeError(`Expected Object but got ${getType(result)} instead.`);
                 }

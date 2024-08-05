@@ -1,6 +1,7 @@
 type Obj<T = unknown> = { [k: string]: T };
 
 type Options = {
+    asyncProp?: string,
     displayName?: string;
     initial?: Obj;
     props?: Obj;
