@@ -1,10 +1,10 @@
 {
   "name": "use-hooked-component",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "description": "Update your components props directly using callbacks from a hook",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "babel src --out-dir dist",
+    "build": "tsc",
     "prepare": "npm run build",
     "test": "jest"
   },
@@ -33,9 +33,11 @@
     "@babel/preset-react": "^7.14.5",
     "@testing-library/react": "^12.1.5",
     "@testing-library/react-hooks": "^3.7.0",
+    "@types/react": "^18.2.74",
     "babel-preset-minify": "^0.5.1",
     "jest": "^26.6.3",
-    "react-test-renderer": "^17.0.1"
+    "react-test-renderer": "^17.0.1",
+    "typescript": "^5.4.3"
   },
   "peerDependencies": {
     "react": ">=16.9.0"
