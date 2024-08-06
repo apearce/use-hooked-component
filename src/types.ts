@@ -23,7 +23,7 @@ type Setter = BasicSetter | CallbackSetter;
 type SettersArray = Setter[];
 type SettersObject = Obj<Setter>;
 type Setters = Setter | SettersArray | SettersObject;
-type UpdatedSetter = (...args: unknown[]) => void;
+type UpdatedSetter = (...args: unknown[]) => undefined | Promise<unknown>;
 type UpdatedSetters = UpdatedSetter[]; 
 type UpdatedSetterObject = Obj<UpdatedSetter>; 
 type RetVal = [IHookedComponent, ...([UpdatedSetterObject] | UpdatedSetters), () => CurrentProps];
