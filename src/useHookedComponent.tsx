@@ -34,6 +34,7 @@ function useHookedComponent(
             settersProp = "__setters"
         } = options;
         const defaultSetter: DefaultSetter = (v) => v;
+        const isHTMLElement = typeof Component === "string";
         let componentSetters: Obj;
         let currentProps: Obj = {};
         let setState: React.Dispatch<React.SetStateAction<Obj | undefined>> = () => {};
@@ -83,14 +84,15 @@ function useHookedComponent(
                 } else if (isObject(result)) {
                     const { [asyncProp]: isAsync, ...rest } = result;
 
-                    if (isAsync) {
+                    // Don't pass async stuff to HTML elements
+                    if (!isHTMLElement && isAsync) {
                         // Support for Promise.withResolvers is a
                         // little lacking so polyfill for now.
                         const { promise, reject, resolve } = Object.hasOwn(Promise, "withResolvers") ?
                             Promise.withResolvers() : getPromiseWithResolvers();
 
                         // This one is async, pass reject and resolve
-                        // to the componet to be acted upon.
+                        // to the component to be acted upon.
                         setState({ ...rest, [asyncProp]: { reject, resolve } });
 
                         // Return a promise.
@@ -118,7 +120,8 @@ function useHookedComponent(
             updatedSetters = [updateSetter(defaultSetter as Setter)];
         }
 
-        if (!omitSetters) {
+        // Don't pass setters to HTML elements
+        if (!isHTMLElement && !omitSetters) {
             componentSetters = {
                 [settersProp]: isObject(updatedSetters[0]) ?
                     updatedSetters[0] :
@@ -131,7 +134,7 @@ function useHookedComponent(
 
             currentProps = { ...optionsProps, ...props };
 
-            return (<Component {...currentProps} {...state} { ...componentSetters } />);
+            return (<Component { ...currentProps } { ...state } { ...componentSetters } />);
         };
 
         HookedComponent.displayName = displayName;

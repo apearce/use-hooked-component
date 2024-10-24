@@ -1,11 +1,11 @@
 type Obj<T = unknown> = { [k: string]: T };
 
-type Options = {
+interface Options {
     asyncProp?: string,
     displayName?: string;
     initial?: Obj;
-    props?: Obj;
     omitSetters?: boolean;
+    props?: Obj;
     settersProp?: string;
 }
 

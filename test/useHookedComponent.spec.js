@@ -5,6 +5,7 @@ import { renderHook } from "@testing-library/react-hooks";
 import useHookedComponent from "../dist/index";
 
 let container = null;
+const PropsComponent = (props) => (<>{JSON.stringify(Object.keys(props))}</>);
 const TestComponent = (props) => (<span>{props.message}</span>);
 
 beforeEach(() => {
@@ -126,6 +127,93 @@ describe("Test default behavior", () => {
     
         expect(container.textContent).toBe("Hello");
     });
+
+    test("Test that __async is passed", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent));
+        const [Component, setter] = result.current;
+        let setterResult;
+
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        act(() => {
+            setterResult = setter({ __async: true });
+        });
+
+        expect(setterResult instanceof Promise).toBe(true);
+        expect(JSON.parse(container.textContent).includes("__async")).toBe(true);
+    });
+
+    test("Test asyncProp option", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, undefined, {
+            asyncProp: "bar"
+        }));
+        const [Component, setter] = result.current;
+        let setterResult;
+
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        act(() => {
+            setterResult = setter({ bar: true });
+        });
+
+        expect(setterResult instanceof Promise).toBe(true);
+        expect(JSON.parse(container.textContent).includes("bar")).toBe(true);
+    });
+
+    test("Test that __setters is passed", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        expect(JSON.parse(container.textContent).includes("__setters")).toBe(true);
+    });
+
+    test("Test settersProp option", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, undefined, {
+            settersProp: "bar"
+        }));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        expect(JSON.parse(container.textContent).includes("bar")).toBe(true);
+    });
+
+    test("Test omitSetters option", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, undefined, {
+            omitSetters: true
+        }));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        expect(JSON.parse(container.textContent).includes("bar")).toBe(false);
+    });
+
+    test("Test omitSetters option with settersProp option", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, undefined, {
+            omitSetters: true,
+            settersProp: "bar"
+        }));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        expect(JSON.parse(container.textContent).includes("bar")).toBe(false);
+    });
 });
 
 describe("Test passing a single setter", () => {
@@ -234,6 +322,93 @@ describe("Test passing a single setter", () => {
         });
     
         expect(container.textContent).toBe("Hello");
+    });
+
+    test("Test that __async is passed", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, () => ({ __async: true })));
+        const [Component, setter] = result.current;
+        let setterResult;
+
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        act(() => {
+            setterResult = setter();
+        });
+
+        expect(setterResult instanceof Promise).toBe(true);
+        expect(JSON.parse(container.textContent).includes("__async")).toBe(true);
+    });
+
+    test("Test asyncProp option", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, () => ({ bar: true }), {
+            asyncProp: "bar"
+        }));
+        const [Component, setter] = result.current;
+        let setterResult;
+
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        act(() => {
+            setterResult = setter();
+        });
+
+        expect(setterResult instanceof Promise).toBe(true);
+        expect(JSON.parse(container.textContent).includes("bar")).toBe(true);
+    });
+
+    test("Test that __setters is passed", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, () => ({ message: "There" })));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        expect(JSON.parse(container.textContent).includes("__setters")).toBe(true);
+    });
+
+    test("Test settersProp option", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, () => ({ message: "There" }), {
+            settersProp: "bar"
+        }));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        expect(JSON.parse(container.textContent).includes("bar")).toBe(true);
+    });
+
+    test("Test omitSetters option", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, () => ({ message: "There" }), {
+            omitSetters: true
+        }));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        expect(JSON.parse(container.textContent).includes("bar")).toBe(false);
+    });
+
+    test("Test omitSetters option with settersProp option", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, () => ({ message: "There" }), {
+            omitSetters: true,
+            settersProp: "bar"
+        }));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        expect(JSON.parse(container.textContent).includes("bar")).toBe(false);
     });
 });
 
@@ -371,6 +546,105 @@ describe("Test passing an array of setters", () => {
     
         expect(container.textContent).toBe("Hi");
     });
+
+    test("Test that __async is passed", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, [() => ({ __async: true })]));
+        const [Component, setter] = result.current;
+        let setterResult;
+
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        act(() => {
+            setterResult = setter();
+        });
+
+        expect(setterResult instanceof Promise).toBe(true);
+        expect(JSON.parse(container.textContent).includes("__async")).toBe(true);
+    });
+
+    test("Test asyncProp option", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, [() => ({ bar: true })], {
+            asyncProp: "bar"
+        }));
+        const [Component, setter] = result.current;
+        let setterResult;
+
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        act(() => {
+            setterResult = setter();
+        });
+
+        expect(setterResult instanceof Promise).toBe(true);
+        expect(JSON.parse(container.textContent).includes("bar")).toBe(true);
+    });
+
+    test("Test that __setters is passed", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, [
+            () => ({ message: "There" }),
+            () => ({}),
+        ]));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        expect(JSON.parse(container.textContent).includes("__setters")).toBe(true);
+    });
+
+    test("Test settersProp option", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, [
+            () => ({ message: "There" }),
+            () => ({}),
+        ], {
+            settersProp: "bar"
+        }));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        expect(JSON.parse(container.textContent).includes("bar")).toBe(true);
+    });
+
+    test("Test omitSetters option", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, [
+            () => ({ message: "There" }),
+            () => ({}),
+        ], {
+            omitSetters: true
+        }));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        expect(JSON.parse(container.textContent).includes("bar")).toBe(false);
+    });
+
+    test("Test omitSetters option with settersProp option", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, [
+            () => ({ message: "There" }),
+            () => ({}),
+        ], {
+            omitSetters: true,
+            settersProp: "bar"
+        }));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        expect(JSON.parse(container.textContent).includes("bar")).toBe(false);
+    });
 });
 
 describe("Test passing an object of setters", () => {
@@ -505,5 +779,195 @@ describe("Test passing an object of setters", () => {
         });
     
         expect(container.textContent).toBe("Hi");
+    });
+
+    test("Test that __async is passed", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, {
+            setter: () => ({ __async: true })
+        }));
+        const [Component, { setter }] = result.current;
+        let setterResult;
+
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        act(() => {
+            setterResult = setter();
+        });
+
+        expect(setterResult instanceof Promise).toBe(true);
+        expect(JSON.parse(container.textContent).includes("__async")).toBe(true);
+    });
+
+    test("Test asyncProp option", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, {
+            setter: () => ({ bar: true })
+        }, {
+            asyncProp: "bar"
+        }));
+        const [Component, { setter }] = result.current;
+        let setterResult;
+
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        act(() => {
+            setterResult = setter();
+        });
+
+        expect(setterResult instanceof Promise).toBe(true);
+        expect(JSON.parse(container.textContent).includes("bar")).toBe(true);
+    });
+
+    test("Test that __setters is passed", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, {
+            reset: () => ({}),
+            setBye: () => ({ message: "Bye" })
+        }));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        expect(JSON.parse(container.textContent).includes("__setters")).toBe(true);
+    });
+
+    test("Test settersProp option", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, {
+            reset: () => ({}),
+            setBye: () => ({ message: "Bye" })
+        }, {
+            settersProp: "bar"
+        }));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        expect(JSON.parse(container.textContent).includes("bar")).toBe(true);
+    });
+
+    test("Test omitSetters option", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, {
+            reset: () => ({}),
+            setBye: () => ({ message: "Bye" })
+        }, {
+            omitSetters: true
+        }));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        expect(JSON.parse(container.textContent).includes("bar")).toBe(false);
+    });
+
+    test("Test omitSetters option with settersProp option", () => {
+        const { result } = renderHook(() => useHookedComponent(PropsComponent, {
+            reset: () => ({}),
+            setBye: () => ({ message: "Bye" })
+        }, {
+            omitSetters: true,
+            settersProp: "bar"
+        }));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component message="Hi" />, container);
+        });
+    
+        expect(JSON.parse(container.textContent).includes("bar")).toBe(false);
+    });
+});
+
+describe("Test using an HTML element", () => {
+    test("Basic test", () => {
+        const { result } = renderHook(() => useHookedComponent("div"));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component />, container);
+        });
+    
+        expect(container.firstChild.tagName.toLowerCase()).toBe("div");
+    });
+
+    test("Setting an attribute", () => {
+        const { result } = renderHook(() => useHookedComponent("div"));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component className="foo" />, container);
+        });
+    
+        expect(container.firstChild.hasAttribute("class")).toBe(true);
+        expect(container.firstChild.getAttribute("class")).toBe("foo");
+    });
+
+    test("Setting an attribute using initial option", () => {
+        const { result } = renderHook(() => useHookedComponent("div", undefined, {
+            initial: {
+                className: "foo"
+            }
+        }));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component />, container);
+        });
+    
+        expect(container.firstChild.hasAttribute("class")).toBe(true);
+        expect(container.firstChild.getAttribute("class")).toBe("foo");
+    });
+
+    test("Setting an attribute using props option", () => {
+        const { result } = renderHook(() => useHookedComponent("div", {}, {
+            props: {
+                "className": "foo"
+            }
+        }));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component />, container);
+        });
+    
+        expect(container.firstChild.hasAttribute("class")).toBe(true);
+        expect(container.firstChild.getAttribute("class")).toBe("foo");
+    });
+
+    test("Ensure __setters is NOT passed", () => {
+        const { result } = renderHook(() => useHookedComponent("div", {
+            setFoo: () => {}
+        }));
+        const [Component] = result.current;
+    
+        act(() => {
+            render(<Component />, container);
+        });
+    
+        expect(container.firstChild.hasAttribute("__setters")).toBe(false);
+    });
+
+    test("Ensure __async is NOT passed", () => {
+        const { result } = renderHook(() => useHookedComponent("div", {
+            setFoo: () => ({ __async: true })
+        }));
+        const [Component, { setFoo }] = result.current;
+    
+        act(() => {
+            render(<Component />, container);
+        });
+    
+        act(() => {
+            setFoo();
+        });
+
+        expect(container.firstChild.hasAttribute("__async")).toBe(false);
     });
 });
