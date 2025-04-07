@@ -6,7 +6,7 @@ import {
     isFunction,
     isObject,
     isUndefined
-} from "./utils";
+} from "./utils.js";
 import {
     CurrentProps,
     DefaultSetter,
@@ -29,21 +29,25 @@ function useHookedComponent(
             asyncProp = "__async",
             displayName = "HookedComponent",
             initial,
-            props: optionsProps,
             omitSetters,
+            props: optionsProps,
             settersProp = "__setters"
         } = options;
         const defaultSetter: DefaultSetter = (v) => v;
         const isHTMLElement = typeof Component === "string";
         let componentSetters: Obj;
         let currentProps: Obj = {};
+        let currentState = initial;
         let setState: React.Dispatch<React.SetStateAction<Obj | undefined>> = () => {};
         let state: Obj | undefined;
         let updatedSetters: UpdatedSetter[] | UpdatedSetterObject[];
 
         function getCurrent(): CurrentProps {
             return {
-                hookProps: { ...state },
+                // Since React sometimes batches state updates,
+                // I can't rely on hookProps: { ...state } here so
+                // I have to keep track of the current state myself.
+                hookProps: { ...currentState },
                 props: { ...currentProps }
             };
         }
@@ -80,7 +84,7 @@ function useHookedComponent(
 
                 // Do something with the result of calling the author defined setter.
                 if (isUndefined(result)) {
-                    setState(result);
+                    updateState(result);
                 } else if (isObject(result)) {
                     const { [asyncProp]: isAsync, ...rest } = result;
 
@@ -93,17 +97,24 @@ function useHookedComponent(
 
                         // This one is async, pass reject and resolve
                         // to the component to be acted upon.
-                        setState({ ...rest, [asyncProp]: { reject, resolve } });
+                        updateState({ ...rest, [asyncProp]: { reject, resolve } });
 
                         // Return a promise.
                         return promise;
                     }
 
-                    setState(rest);
+                    updateState(rest);
                 } else {
                     throw new TypeError(`Expected Object but got ${getType(result)} instead.`);
                 }
             }
+        }
+
+        // All state is updated here
+        // See comment in getCurrent()
+        function updateState(newState: Obj | undefined) {
+            currentState = newState;
+            setState(newState);
         }
 
         if (Array.isArray(setters)) { // An array of setters

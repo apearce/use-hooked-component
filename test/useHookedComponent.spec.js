@@ -5,6 +5,7 @@ import { renderHook } from "@testing-library/react-hooks";
 import useHookedComponent from "../dist/index";
 
 let container = null;
+const MultiMessageComponent = (props) => (<span>{props.message} {props.message2}</span>);
 const PropsComponent = (props) => (<>{JSON.stringify(Object.keys(props))}</>);
 const TestComponent = (props) => (<span>{props.message}</span>);
 
@@ -89,6 +90,23 @@ describe("Test default behavior", () => {
         });
     
         expect(container.textContent).toBe("Hello World");
+    });
+
+    test("Default setter passing function in same act", () => {
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(MultiMessageComponent, undefined, { initial }));
+        const [Component, setter] = result.current;
+
+        act(() => {
+            render(<Component message="Test" />, container);
+        });
+
+        act(() => {
+            setter((current) => ({ ...current.hookProps, message: "Foo"}));
+            setter((current) => ({ ...current.hookProps, message2: "Bar"}));
+        });
+    
+        expect(container.textContent).toBe("Foo Bar");
     });
 
     test("Default props", () => {
@@ -261,7 +279,7 @@ describe("Test passing a single setter", () => {
         expect(container.textContent).toBe("World");
     });
     
-    test("Use current value in custom setters", () => {
+    test("Use current value in custom setter", () => {
         const initial = { message: "Hello" };
         const { result } = renderHook(() => useHookedComponent(TestComponent, () => (current) => ({ message: `${current.hookProps.message} World` }), { initial }));
         const [Component, setter] = result.current;
@@ -279,6 +297,27 @@ describe("Test passing a single setter", () => {
         expect(container.textContent).toBe("Hello World");
     });
     
+    test("Use current value in custom setter in same act", () => {
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(MultiMessageComponent,
+            (props) => (current) => ({ ...current.hookProps, ...props })
+        , { initial }));
+        const [Component, setter ] = result.current;
+    
+        act(() => {
+            render(<Component />, container);
+        });
+    
+        expect(container.textContent).toBe("Hello ");
+    
+        act(() => {
+            setter({ message: "Foo"});
+            setter({ message2: "Bar" });
+        });
+    
+        expect(container.textContent).toBe("Foo Bar");
+    });
+
     test("Custom setter passing function", () => {
         const initial = { message: "Hello" };
         const { result } = renderHook(() => useHookedComponent(TestComponent, (message) => ({ message }), { initial }));
@@ -293,6 +332,23 @@ describe("Test passing a single setter", () => {
         });
     
         expect(container.textContent).toBe("Hello World");
+    });
+
+    test("Custom setter passing function in same act", () => {
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(MultiMessageComponent, (props) => (props), { initial }));
+        const [Component, setter] = result.current;
+
+        act(() => {
+            render(<Component message="Test" />, container);
+        });
+
+        act(() => {
+            setter((current) => ({ ...current.hookProps, message: "Foo"}));
+            setter((current) => ({ ...current.hookProps, message2: "Bar"}));
+        });
+    
+        expect(container.textContent).toBe("Foo Bar");
     });
 
     test("Default props", () => {
@@ -505,6 +561,28 @@ describe("Test passing an array of setters", () => {
         expect(container.textContent).toBe("");
     });
     
+    test("Use current value in custom setters in same act", () => {
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(MultiMessageComponent, [
+            (message) => (current) => ({ ...current.hookProps, message }),
+            (message2) => (current) => ({ ...current.hookProps, message2 })
+        ], { initial }));
+        const [Component, setMessage, setMessage2 ] = result.current;
+    
+        act(() => {
+            render(<Component />, container);
+        });
+    
+        expect(container.textContent).toBe("Hello ");
+    
+        act(() => {
+            setMessage("Foo");
+            setMessage2("Bar");
+        });
+    
+        expect(container.textContent).toBe("Foo Bar");
+    });
+
     test("Custom setter passing function", () => {
         const initial = { message: "Hello" };
         const { result } = renderHook(() => useHookedComponent(TestComponent, [(message) => ({ message })], { initial }));
@@ -519,6 +597,25 @@ describe("Test passing an array of setters", () => {
         });
     
         expect(container.textContent).toBe("Hello World");
+    });
+
+    test("Custom setter passing function in same act", () => {
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(MultiMessageComponent, [
+            (props) => (props)
+        ], { initial }));
+        const [Component, setter] = result.current;
+
+        act(() => {
+            render(<Component message="Test" />, container);
+        });
+
+        act(() => {
+            setter((current) => ({ ...current.hookProps, message: "Foo"}));
+            setter((current) => ({ ...current.hookProps, message2: "Bar"}));
+        });
+    
+        expect(container.textContent).toBe("Foo Bar");
     });
 
     test("Default props", () => {
@@ -738,6 +835,28 @@ describe("Test passing an object of setters", () => {
     
         expect(container.textContent).toBe("Hello World");
     });
+
+    test("Use current value in custom setters in same act", () => {
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(MultiMessageComponent, {
+            setMessage: (message) => (current) => ({ ...current.hookProps, message }),
+            setMessage2: (message2) => (current) => ({ ...current.hookProps, message2 })
+        }, { initial }));
+        const [Component, { setMessage, setMessage2 }] = result.current;
+    
+        act(() => {
+            render(<Component />, container);
+        });
+    
+        expect(container.textContent).toBe("Hello ");
+    
+        act(() => {
+            setMessage("Foo");
+            setMessage2("Bar");
+        });
+    
+        expect(container.textContent).toBe("Foo Bar");
+    });
     
     test("Custom setter passing function", () => {
         const initial = { message: "Hello" };
@@ -753,6 +872,25 @@ describe("Test passing an object of setters", () => {
         });
     
         expect(container.textContent).toBe("Hello World");
+    });
+
+    test("Custom setter passing function in same act", () => {
+        const initial = { message: "Hello" };
+        const { result } = renderHook(() => useHookedComponent(MultiMessageComponent, { 
+            setter: (props) => (props)
+        }, { initial }));
+        const [Component, { setter }] = result.current;
+
+        act(() => {
+            render(<Component message="Test" />, container);
+        });
+
+        act(() => {
+            setter((current) => ({ ...current.hookProps, message: "Foo"}));
+            setter((current) => ({ ...current.hookProps, message2: "Bar"}));
+        });
+    
+        expect(container.textContent).toBe("Foo Bar");
     });
 
     test("Default props", () => {
