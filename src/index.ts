@@ -1,3 +1,3 @@
-import useHookedComponent from './useHookedComponent';
+import useHookedComponent from './useHookedComponent.js';
 
 export default useHookedComponent;
